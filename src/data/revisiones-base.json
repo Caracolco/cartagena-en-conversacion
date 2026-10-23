@@ -1,0 +1,14 @@
+{
+  "ig_18080509952333922": { "sentiment": "positivo", "target": "candidato", "note": "Columna de opinión que destaca su liderazgo.", "by": "Revisión inicial" },
+  "ig_18119488885574095": { "sentiment": "neutral", "target": "ninguno", "note": "Nota informativa: Toncel destaca la inauguración de un hospital.", "by": "Revisión inicial" },
+  "721d5238ba6603da8443c8350dc1bf60": { "sentiment": "neutral", "target": "ninguno", "note": "Nota informativa sobre inasistencias al Concejo; cita seis ausencias de Toncel.", "by": "Revisión inicial" },
+  "b5976ab74e537f5632029248d5512962": { "sentiment": "neutral", "target": "ninguno", "note": "Nota informativa sobre traslado presupuestal a la Contraloría.", "by": "Revisión inicial" },
+  "42d1cb9d78f9e6a91860bec1dea05d70": { "sentiment": "neutral", "target": "ninguno", "note": "Nota informativa sobre inundaciones en la Calle Larga.", "by": "Revisión inicial" },
+  "tikapi_7640324289593543956_7640964729665667848": { "sentiment": "positivo", "target": "candidato", "note": "Saludo afectuoso de un usuario.", "by": "Revisión inicial" },
+  "fbgen_1439216394897791_3f4af866231db80023a21d827b883a45e2ec2e3415430897a96e7f793247ad30": { "sentiment": "neutral", "target": "ninguno", "note": "Solo menciona el nombre en un hilo sobre el panorama electoral.", "by": "Revisión inicial" },
+  "twitter_2075260244855300421": { "sentiment": "neutral", "target": "ninguno", "note": "Informa su designación como coordinador de ponencia.", "by": "Revisión inicial" },
+  "ig_18168858892436909": { "sentiment": "neutral", "target": "ninguno", "note": "Nota informativa sobre tenencia de perros de manejo especial.", "by": "Revisión inicial" },
+  "ig_18087735290239814": { "sentiment": "neutral", "target": "ninguno", "note": "Nota informativa sobre la entidad de las Fiestas de Independencia.", "by": "Revisión inicial" },
+  "4c57dc5f4fa5eb246ebc2222405c8888": { "sentiment": "neutral", "target": "ninguno", "note": "Nota informativa sobre asistencia al Concejo.", "by": "Revisión inicial" },
+  "twitter_2092083763295494286": { "sentiment": "neutral", "target": "ninguno", "note": "Análisis de sus argumentos sobre la empresa de servicios públicos; sin valoración explícita en el texto visible.", "by": "Revisión inicial" }
+}

@@ -1,0 +1,66 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 132px;
+}
+
+body {
+  @apply bg-white text-ink font-sans antialiased;
+  font-feature-settings: 'tnum' 1, 'cv11' 1;
+}
+
+@layer components {
+  .card {
+    @apply bg-white rounded-xl border border-line shadow-card;
+  }
+  .btn {
+    @apply inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 disabled:opacity-50;
+  }
+  .btn-light {
+    @apply btn bg-white/10 text-white hover:bg-white/20 border border-white/15;
+  }
+  .btn-ghost {
+    @apply btn text-navy-800 hover:bg-navy-50 border border-line;
+  }
+  .btn-primary {
+    @apply btn bg-navy-900 text-white hover:bg-navy-800;
+  }
+  .btn-accent {
+    @apply btn bg-accent text-white hover:bg-accent-dark;
+  }
+  .field {
+    @apply h-8 rounded-md border border-line bg-white px-2 text-sm text-ink focus:border-navy-600 focus:outline-none focus:ring-2 focus:ring-navy-600/15;
+  }
+  .kicker {
+    @apply text-[11px] font-semibold uppercase tracking-[0.14em] text-accent;
+  }
+  .chip {
+    @apply inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium leading-4 whitespace-nowrap;
+  }
+}
+
+.recharts-cartesian-axis-tick-value {
+  font-size: 11px;
+  fill: #5b6678;
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
