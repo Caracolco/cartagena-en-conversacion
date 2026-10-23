@@ -1,0 +1,61 @@
+{
+  "percepcion": {
+    "items": [
+      {
+        "id": "fbgen_1457282636424500_be7427bdf1adb209edb1e8d84f7a67387452ac6cc5b7db86b2e3c57322b8159f",
+        "about": "Bruno Hernández",
+        "why": "Positivo típico: valora la gestión de una figura sin insultos ni consignas repetidas."
+      },
+      {
+        "id": "fbgen_1372970378255104_af1b58824c43df946ad01161e5257fdddf3e03e84897379071a12768733d294a",
+        "about": "Javier Julio Bejarano",
+        "why": "Negativo típico: la crítica se dirige a la figura por su filiación política."
+      },
+      {
+        "id": "fbgen_1317226387212465_78790c333b8194a81e3e054daf292889dde172710176f7a3f49a1553b33b9ea5",
+        "about": "Medio ambiente",
+        "why": "Neutral: reconoce una obra y a la vez pide más vegetación; no se inclina a un polo."
+      }
+    ]
+  },
+  "ciudad": {
+    "headline": "Los reclamos de ciudad son concretos: tarifas de energía, cruces peligrosos e inseguridad",
+    "items": [
+      {
+        "id": "fbgen_1371239551761520_c099292792fbb6bc7eb579ca051a0b9fb6edb908d3d42334e2042fcb7f70b11e",
+        "about": "Servicios públicos",
+        "why": "Reclamo de ciudad sobre cobros de energía, uno de los temas con más carga negativa."
+      },
+      {
+        "id": "fbgen_1400821488803326_5d7f908b223c6aca4aee905e77bba20d5a866251423adec12a99715b5a229312",
+        "about": "Movilidad",
+        "why": "Petición concreta de un barrio sobre seguridad vial."
+      },
+      {
+        "id": "fbgen_1825145296283632_cdb08c0463f05f022964a8c3720c92b4d1e0853f2dc4edf605ee08483324a44e",
+        "about": "Seguridad",
+        "why": "La inseguridad aparece como necesidad de ciudad en la conversación electoral."
+      }
+    ]
+  },
+  "figuras": {
+    "headline": "Cuando se habla de Wilson, se habla de su agenda: tenencia de perros y servicios públicos",
+    "items": [
+      {
+        "id": "ig_18168858892436909",
+        "about": "Wilson Toncel",
+        "why": "Mención de terceros con más interacciones: un medio registra que el alcalde atiende su llamado."
+      },
+      {
+        "id": "ig_18073752899414261",
+        "about": "Wilson Toncel",
+        "why": "Publicación propia sobre servicios públicos, el tema que más trabaja en sus redes."
+      },
+      {
+        "id": "fbgen_1347134630784009_7f0e84537ff6ac8d5d6aac4626cc143ac0db64b71980699df65db63b51cc1ca6",
+        "about": "Óscar Torres",
+        "why": "Su conversación es sobre todo institucional: peajes y vías."
+      }
+    ]
+  }
+}

@@ -1,112 +1,137 @@
-import { PLATFORMS } from './config';
 import { fmt, fmtPct } from './format';
-import { median, type CandStats } from './metrics';
-import type { CandidateId } from './types';
+import { candidateStats, concentration, countSentiment, median, pct, targetStats, topicStats } from './metrics';
+import type { ActiveMention } from './overrides';
+import type { CandidateId, Thread } from './types';
 
 export interface Conclusion {
-  id: string;
+  id: 'visibilidad' | 'voz-propia' | 'temas' | 'percepcion' | 'cobertura';
   title: string;
   figure: string;
   figureLabel: string;
   text: string;
 }
 
-interface Input {
-  stats: CandStats[];
-  topics: { label: string; total: number; negativo: number }[];
-  focus?: CandidateId;
+/** "más que duplican", "triplican"… para comparar dos cantidades sin decimales. */
+export function ratioPhrase(a: number, b: number): string {
+  const r = b ? a / b : 0;
+  if (r >= 4) return `multiplican por ${Math.floor(r)}`;
+  if (r >= 3) return 'triplican';
+  if (r >= 2) return 'más que duplican';
+  if (r > 1) return 'superan';
+  return 'no superan';
 }
 
-/** Máximo cinco conclusiones, todas derivadas de cifras. Sin inferencias de intención de voto. */
-export function buildConclusions({ stats, topics, focus = 'toncel' }: Input): Conclusion[] {
+/** Temas con volumen suficiente ordenados por proporción de registros negativos. */
+export function topicsByNegativity(ms: ActiveMention[], minTotal = 100) {
+  return topicStats(ms)
+    .filter((t) => t.total >= minTotal)
+    .map((t) => ({ ...t, negRate: pct(t.negativo, t.total) }))
+    .sort((a, b) => b.negRate - a.negRate);
+}
+
+/** Autor que más se repite entre los hilos más grandes. */
+export function dominantThreadAuthor(ms: ActiveMention[], threads: Record<string, Thread>, topN = 10) {
+  const byThread = new Map<string, number>();
+  for (const m of ms) byThread.set(m.thread, (byThread.get(m.thread) ?? 0) + 1);
+  const top = [...byThread.entries()].sort((a, b) => b[1] - a[1]).slice(0, topN);
+  const authors = new Map<string, number>();
+  for (const [id] of top) {
+    const a = threads[id]?.author;
+    if (a) authors.set(a, (authors.get(a) ?? 0) + 1);
+  }
+  const [author, count] = [...authors.entries()].sort((a, b) => b[1] - a[1])[0] ?? ['', 0];
+  return { author, count, of: top.length };
+}
+
+/**
+ * Máximo cinco conclusiones, todas derivadas de cifras de la base: visibilidad, voz propia, temas,
+ * percepción y brechas de cobertura. No infiere intención de voto ni hace recomendaciones electorales.
+ */
+export function buildConclusions(ms: ActiveMention[], threads: Record<string, Thread>, focus: CandidateId = 'toncel'): Conclusion[] {
+  const stats = candidateStats(ms);
   const w = stats.find((s) => s.id === focus);
   if (!w) return [];
   const others = stats.filter((s) => s.id !== focus);
   const out: Conclusion[] = [];
 
-  // 1. Brecha de visibilidad
+  // Visibilidad
   const ranked = [...stats].sort((a, b) => b.espontanea - a.espontanea);
   const rank = ranked.findIndex((s) => s.id === focus) + 1;
-  const leader = ranked[0];
-  const med = median(others.map((s) => s.espontanea));
+  const totalSpont = stats.reduce((a, s) => a + s.espontanea, 0);
+  const [first, second] = ranked;
+  const top2 = pct(first.espontanea + second.espontanea, totalSpont);
   out.push({
-    id: 'brecha',
-    title: 'Brecha de visibilidad espontánea',
-    figure: fmt(w.espontanea),
-    figureLabel: `menciones espontáneas · puesto ${rank} de ${stats.length}`,
+    id: 'visibilidad',
+    title: 'Dos figuras concentran la conversación espontánea',
+    figure: fmtPct(top2),
+    figureLabel: `de las menciones de terceros son para ${first.name} y ${second.name}`,
     text:
-      `Terceros nombran a Wilson Toncel ${fmt(w.espontanea)} veces (${fmtPct(w.share, 1)} de la conversación espontánea de las siete figuras). ` +
-      `La mediana de las demás es ${fmt(med)} y ${leader.id === focus ? 'él lidera' : `${leader.name} lidera con ${fmt(leader.espontanea)}`}.`,
+      `De ${fmt(totalSpont)} menciones de terceros a las siete figuras, ${fmt(w.espontanea)} nombran a Wilson Toncel (${fmtPct(w.share, 1)}), ` +
+      `puesto ${rank} de ${stats.length}. La mediana de las otras seis es ${fmt(median(others.map((s) => s.espontanea)))}.`,
   });
 
-  // 2. Plataformas
-  const spontBy = (s: CandStats, p: (typeof PLATFORMS)[number]) => s.platforms[p].espontanea;
-  const totalOthersSpont = others.reduce((a, s) => a + s.espontanea, 0) || 1;
-  const byPlatform = PLATFORMS.map((p) => {
-    const othersN = others.reduce((a, s) => a + spontBy(s, p), 0);
-    const wN = spontBy(w, p);
-    return { p, w: wN, othersShare: (othersN / totalOthersSpont) * 100, wShare: wN + othersN ? (wN / (wN + othersN)) * 100 : 0 };
-  });
-  const weak = byPlatform
-    .filter((x) => x.othersShare >= 5)
-    .sort((a, b) => a.wShare - b.wShare || b.othersShare - a.othersShare)
-    .slice(0, 2);
-  const ownTop = [...PLATFORMS].sort((a, b) => w.platforms[b].propia - w.platforms[a].propia)[0];
-  if (weak.length) {
-    out.push({
-      id: 'plataformas',
-      title: 'Plataformas con menor registro',
-      figure: weak.map((x) => fmt(x.w)).join(' · '),
-      figureLabel: `menciones de terceros en ${weak.map((x) => x.p).join(' y ')}`,
-      text:
-        `${weak.map((x) => `${x.p} (${fmtPct(x.othersShare)})`).join(' e ')} concentran la conversación espontánea de las demás figuras. ` +
-        `Allí Wilson suma ${weak.map((x) => fmt(x.w)).join(' y ')} menciones de terceros (${weak.map((x) => fmtPct(x.wShare, 1)).join(' y ')} del total del canal). ` +
-        (w.platforms[ownTop].propia ? `Sus publicaciones propias se concentran en ${ownTop} (${fmt(w.platforms[ownTop].propia)} de ${fmt(w.propia)}).` : ''),
-    });
-  }
-
-  // 3. Propia vs. espontánea
-  const ownShare = w.direct ? (w.propia / w.direct) * 100 : 0;
+  // Voz propia
+  const ownShare = pct(w.propia, w.direct);
   const othersOwn = others.reduce((a, s) => a + s.propia, 0);
   const othersDirect = others.reduce((a, s) => a + s.direct, 0);
   out.push({
-    id: 'propia',
-    title: 'Más voz propia que conversación de terceros',
+    id: 'voz-propia',
+    title: 'Wilson se escucha más en su voz que en la de otros',
     figure: fmtPct(ownShare),
     figureLabel: 'de su presencia directa son publicaciones propias',
     text:
-      `De ${fmt(w.direct)} registros directos, ${fmt(w.propia)} los publicó él y ${fmt(w.espontanea)} son de terceros. ` +
-      `En las demás figuras las publicaciones propias son el ${fmtPct((othersOwn / (othersDirect || 1)) * 100)}. ` +
-      (w.ownCommentsCaptured === 0 && w.propia > 0 ? 'La base no capturó comentarios en sus publicaciones.' : ''),
+      `${fmt(w.propia)} de sus ${fmt(w.direct)} registros directos los publicó él; ${fmt(w.espontanea)} vienen de terceros. ` +
+      `En las otras seis figuras las publicaciones propias pesan el ${fmtPct(pct(othersOwn, othersDirect))}.`,
   });
 
-  // 4. Temas
-  const top = topics.filter((t) => t.total > 0).slice(0, 3);
-  if (top.length) {
+  // Temas
+  const topics = topicStats(ms).filter((t) => t.total > 0);
+  const neg = topicsByNegativity(ms);
+  if (topics.length >= 2) {
+    const [t1, t2] = topics;
+    const critical = neg[0];
     out.push({
       id: 'temas',
-      title: 'Temas que dominan la discusión pública',
-      figure: top[0].label,
-      figureLabel: `${fmt(top[0].total)} registros con el tema en su propio texto`,
+      title: 'La gestión de la ciudad domina la discusión',
+      figure: fmt(t1.total),
+      figureLabel: `registros hablan de ${t1.label.toLowerCase()}`,
       text:
-        `Los temas más mencionados son ${top.map((t) => `${t.label.toLowerCase()} (${fmt(t.total)})`).join(', ')}. ` +
-        `En ${top[0].label.toLowerCase()}, el ${fmtPct((top[0].negativo / (top[0].total || 1)) * 100)} de los registros es negativo.`,
+        `${t1.label} (${fmt(t1.total)}) y ${t2.label.toLowerCase()} (${fmt(t2.total)}) encabezan los temas. ` +
+        (critical ? `${critical.label} es el tema con más carga negativa: ${fmtPct(critical.negRate)} de sus registros.` : ''),
     });
   }
 
-  // 5. Medios
-  const mediaLeader = [...others].sort((a, b) => b.mediaItems - a.mediaItems)[0];
+  // Percepción
+  const s = countSentiment(ms);
+  const targets = targetStats(ms, 'negativo');
+  const wNeg = ms.filter((m) => m.sentiment === 'negativo' && m.cands.some((c) => c.id === focus && !c.pending && c.rel !== 'contexto')).length;
   out.push({
-    id: 'medios',
-    title: 'Cobertura en medios digitales',
-    figure: fmt(w.mediaItems),
-    figureLabel: `notas de medios en ${fmt(w.mediaOutlets)} ${w.mediaOutlets === 1 ? 'fuente' : 'fuentes'}`,
+    id: 'percepcion',
+    title: 'Tono mayoritariamente neutral; la crítica apunta a las figuras',
+    figure: `${new Intl.NumberFormat('es-CO', { maximumFractionDigits: 1 }).format(s.negativo ? s.positivo / s.negativo : 0)} a 1`,
+    figureLabel: `positivos por cada negativo (${fmt(s.positivo)} y ${fmt(s.negativo)})`,
     text:
-      `Medios digitales publicaron ${fmt(w.mediaItems)} piezas que nombran a Wilson; ${
-        w.atlItems === 0 ? 'ninguna proviene' : w.atlItems === 1 ? '1 proviene' : `${fmt(w.atlItems)} provienen`
-      } de marcas de prensa, radio o TV en sus canales digitales` +
-      (mediaLeader ? ` (${mediaLeader.name}: ${fmt(mediaLeader.mediaItems)} piezas en ${fmt(mediaLeader.mediaOutlets)} fuentes).` : '.') +
-      ' La base no mide audiencias de prensa, radio ni televisión.',
+      `Los positivos ${ratioPhrase(s.positivo, s.negativo)} a los negativos y el ${fmtPct(pct(s.neutral, ms.length))} es neutral. ` +
+      `El ${fmtPct(pct(targets.candidato, s.negativo))} de la crítica se dirige a figuras o candidaturas. ` +
+      `En los ${fmt(w.direct)} registros directos de Wilson hay ${fmt(wNeg)} negativos, una muestra demasiado pequeña para generalizar.`,
+  });
+
+  // Cobertura
+  const conc = concentration(ms);
+  const dom = dominantThreadAuthor(ms, threads);
+  const fbOthers = pct(
+    others.reduce((a, o) => a + o.platforms.Facebook.espontanea, 0),
+    others.reduce((a, o) => a + o.espontanea, 0),
+  );
+  const wFb = w.platforms.Facebook.espontanea;
+  out.push({
+    id: 'cobertura',
+    title: 'Brechas de captura que conviene investigar',
+    figure: fmtPct(conc.share),
+    figureLabel: 'del volumen está en solo 10 hilos',
+    text:
+      `${dom.count} de esos ${dom.of} hilos son de ${dom.author}. Facebook reúne el ${fmtPct(fbOthers)} de las menciones de terceros a las demás figuras ` +
+      `y solo ${fmt(wFb)} a Wilson; sus publicaciones propias se capturaron sin comentarios. Ampliar fuentes y cuentas permitiría medir su conversación con más certeza.`,
   });
 
   return out.slice(0, 5);

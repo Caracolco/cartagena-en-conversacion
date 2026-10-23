@@ -10,7 +10,6 @@ import { buildDataset } from '../src/lib/pipeline';
 import { applyOverrides, countable } from '../src/lib/overrides';
 import { candidateStats, overview } from '../src/lib/metrics';
 import { buildConclusions } from '../src/lib/conclusions';
-import { topicStats } from '../src/lib/metrics';
 import revisiones from '../src/data/revisiones-base.json';
 import type { Overrides } from '../src/lib/types';
 
@@ -65,7 +64,7 @@ describe.skipIf(!file)('base real', () => {
   });
 
   it('genera como máximo cinco conclusiones con cifras', () => {
-    const c = buildConclusions({ stats: candidateStats(active), topics: topicStats(active) });
+    const c = buildConclusions(active, ds.threads);
     expect(c.length).toBeGreaterThan(0);
     expect(c.length).toBeLessThanOrEqual(5);
     for (const x of c) expect(x.text).toMatch(/\d/);

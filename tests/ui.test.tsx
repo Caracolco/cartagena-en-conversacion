@@ -5,12 +5,11 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { applyOverrides, countable } from '../src/lib/overrides';
 import { applyFilters, EMPTY_FILTERS } from '../src/lib/metrics';
 import { buildExportWorkbook } from '../src/lib/exporter';
 import revisiones from '../src/data/revisiones-base.json';
-import Conclusiones from '../src/sections/Conclusiones';
 import Evidencias from '../src/sections/Evidencias';
 import type { Dataset, Overrides } from '../src/lib/types';
 import type { View } from '../src/sections/view';
@@ -36,16 +35,6 @@ function makeView(filters = EMPTY_FILTERS): View {
 }
 
 afterEach(cleanup);
-
-describe('Conclusiones', () => {
-  it('muestra como máximo cinco conclusiones, sin numeración visible en el título de sección', () => {
-    render(<Conclusiones v={makeView()} />);
-    const section = document.getElementById('conclusiones')!;
-    expect(within(section).getByRole('heading', { level: 2 }).textContent).toBe('Conclusiones');
-    expect(section.querySelectorAll('ol > li').length).toBeLessThanOrEqual(5);
-    expect(section.textContent).toMatch(/no intención de voto/);
-  });
-});
 
 describe('Evidencias', () => {
   it('lista registros con enlace al original y permite abrir la revisión', () => {

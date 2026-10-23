@@ -15,6 +15,16 @@ npm run build     # sitio estático en dist/
 
 El Excel original (`D:\ESCUCHA SOCIAL\*.xlsx`) solo se lee; nunca se modifica.
 
+## Estructura del sitio
+
+* **Informe ejecutivo** (`#/`): presentación por capítulos (portada, panorama, las siete figuras, Wilson Toncel, temas de ciudad,
+  percepción y conclusiones). Se navega con las flechas del teclado, los botones anterior/siguiente, el menú lateral o deslizando en
+  tableta; cada pantalla tiene su dirección (`#/wilson`, `#/percepcion/3`). Todas las cifras y titulares se calculan en
+  `src/report/story.ts`; las conclusiones, en `src/lib/conclusions.ts`.
+* **Evidencias**: `src/data/evidencias.json` solo guarda el id del registro, la figura o tema y el motivo de la selección; el texto,
+  la fecha, la plataforma, el sentimiento y el enlace se leen de la base, y una prueba verifica que coincidan.
+* **Datos y revisión** (`#/admin`): vista de trabajo con filtros, revisión de registros, importación de Excel y exportación.
+
 ## Cómo se depura la base
 
 | Paso | Regla |

@@ -28,4 +28,4 @@ console.table(
   })),
 );
 console.table(topicStats(ms).map((t) => ({ tema: t.label, total: t.total, neg: t.negativo })));
-for (const c of buildConclusions({ stats: candidateStats(ms), topics: topicStats(ms) })) console.log(`\n■ ${c.title}\n  ${c.figure} — ${c.figureLabel}\n  ${c.text}`);
+for (const c of buildConclusions(ms, ds.threads)) console.log(`\n■ ${c.title}\n  ${c.figure} — ${c.figureLabel}\n  ${c.text}`);
