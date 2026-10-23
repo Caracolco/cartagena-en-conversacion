@@ -46,11 +46,8 @@ y se exportan/importan como JSON. Las revisiones iniciales del equipo están en 
 4. El flujo `.github/workflows/deploy.yml` ejecuta pruebas, compila y publica en
    `https://caracolco.github.io/cartagena-en-conversacion/`.
 
-> En cuentas gratuitas, GitHub Pages exige repositorio **público**, así que `public/data/base.json` queda visible.
-> Por eso `npm run data` publica a comentaristas y cuentas particulares con un seudónimo (`Usuario 3f9a1c`, con una sal
-> aleatoria que no se guarda) y vacía los comentarios que solo etiquetan a otra persona. Se conservan los nombres de las cuentas
-> de las figuras y de los medios, los textos y los enlaces al original (en X y TikTok el enlace incluye el usuario).
-> Una prueba falla si aparece un nombre particular en la base publicada.
+> En cuentas u organizaciones gratuitas, GitHub Pages exige repositorio **público** (con GitHub Enterprise Cloud puede ser privado): `public/data/base.json` (textos y enlaces de publicaciones
+> públicas, nombres de autores) quedará visible.
 
 ## Alcance
 

@@ -6,17 +6,13 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { parseWorkbook } from '../src/lib/excel';
-import { buildDataset, datasetToRaw } from '../src/lib/pipeline';
+import { buildDataset } from '../src/lib/pipeline';
 import { applyOverrides, countable } from '../src/lib/overrides';
 import { candidateStats, overview } from '../src/lib/metrics';
 import { buildConclusions } from '../src/lib/conclusions';
 import { topicStats } from '../src/lib/metrics';
 import revisiones from '../src/data/revisiones-base.json';
-import { anonymize } from '../src/lib/privacy';
-import { createHash } from 'node:crypto';
-import type { Dataset, Overrides } from '../src/lib/types';
-
-const hash = (a: string) => createHash('sha256').update(a).digest('hex').slice(0, 6);
+import type { Overrides } from '../src/lib/types';
 
 const dir = resolve(__dirname, '..', '..');
 const file = existsSync(dir) ? readdirSync(dir).find((f) => /^Wilson_Ernesto_Toncel.*\.xlsx$/.test(f)) : undefined;
@@ -80,38 +76,5 @@ describe.skipIf(!file)('base real', () => {
     const o = overview(active);
     expect(o.posts + o.comments).toBe(o.total);
     expect(o.byPlatform.reduce((a, p) => a + p.total, 0)).toBe(o.total);
-  });
-});
-
-describe.skipIf(!file)('anonimización de la base publicada', () => {
-  const raw = file ? parseWorkbook(readFileSync(resolve(dir, file))) : [];
-  const ds = buildDataset(raw, [file ?? '']);
-  const pub = anonymize(ds, (a) => `Usuario ${hash(a)}`);
-  const stats = (d: Dataset) => candidateStats(countable(applyOverrides(d, revisiones as Overrides)));
-
-  it('no publica nombres de comentaristas ni de cuentas particulares', () => {
-    for (const m of pub.mentions.filter((x) => x.sourceType === 'comentario' || x.sourceType === 'cuenta-social')) {
-      if (m.author) expect(m.author).toMatch(/^Usuario [0-9a-f]{6}$/);
-    }
-  });
-
-  it('conserva las cuentas propias y los medios', () => {
-    expect(pub.mentions.filter((m) => /@wtoncel/.test(m.author)).length).toBeGreaterThanOrEqual(25);
-    expect(pub.mentions.filter((m) => m.sourceType === 'medio-digital').every((m) => !/^Usuario /.test(m.author))).toBe(true);
-  });
-
-  it('no cambia ningún indicador ni el resultado de reprocesar la base', () => {
-    expect(stats(pub)).toEqual(stats(ds));
-    const key = (d: Dataset) => d.mentions.map((m) => `${m.id}|${m.sourceType}|${m.lowText}|${m.sentiment}|${m.cands.map((c) => c.id + c.rel).join()}`);
-    const again = (d: Dataset) => key(buildDataset(datasetToRaw(d), d.audit.sourceFiles));
-    expect(again(pub)).toEqual(again(ds));
-  });
-});
-
-describe('base publicada (public/data/base.json)', () => {
-  const pub: Dataset = JSON.parse(readFileSync(resolve(__dirname, '..', 'public', 'data', 'base.json'), 'utf8'));
-  it('solo contiene seudónimos para autores particulares', () => {
-    const names = pub.mentions.filter((m) => (m.sourceType === 'comentario' || m.sourceType === 'cuenta-social') && m.author && !/^Usuario [0-9a-f]{6}$/.test(m.author));
-    expect(names).toHaveLength(0);
   });
 });

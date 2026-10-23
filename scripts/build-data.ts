@@ -9,8 +9,6 @@ import { basename, dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseWorkbook } from '../src/lib/excel';
 import { buildDataset } from '../src/lib/pipeline';
-import { anonymize } from '../src/lib/privacy';
-import { createHmac, randomBytes } from 'node:crypto';
 import type { RawRow } from '../src/lib/types';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -34,12 +32,9 @@ for (const f of files) {
 }
 
 const ds = buildDataset(raw, files.map((f) => basename(f)));
-// El sitio es público: los autores particulares se publican con seudónimo. La sal se descarta al terminar.
-const salt = randomBytes(16);
-const pseudonym = (a: string) => `Usuario ${createHmac('sha256', salt).update(a).digest('hex').slice(0, 6)}`;
 const out = join(root, 'public', 'data');
 mkdirSync(out, { recursive: true });
-writeFileSync(join(out, 'base.json'), JSON.stringify(anonymize(ds, pseudonym)));
+writeFileSync(join(out, 'base.json'), JSON.stringify(ds));
 
 const a = ds.audit;
 console.log(`Filas originales: ${a.rawRows}`);
